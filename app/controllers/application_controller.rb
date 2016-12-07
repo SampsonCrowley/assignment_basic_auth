@@ -1,15 +1,24 @@
 class ApplicationController < ActionController::Base
-  before_action :authenticate, :except => [:index, :show]
+  before_action :authenticate
+
   protect_from_forgery with: :exception
 
   private
+    def authenticate
+      unless signed_in_user?
+        flash[:danger] = "Not authorized"
+        redirect_to login_path
+      end
+    end
+
     def whitelisted_user_params
       params.require(:user).permit(:username,
                                    :email,
-                                   :password, :password_confirmation)
+                                   :password,
+                                   :password_confirmation)
     end
 
-    def sign_in
+    def sign_in(user)
       session[:user_id] = user.id
       @current_user = user
     end
@@ -28,5 +37,5 @@ class ApplicationController < ActionController::Base
       !!current_user
     end
     helper_method :signed_in_user?
-    
+
 end
